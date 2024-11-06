@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    volumes:
+      - ./src:/var/www/html
+      - composer_cache:/root/.composer/cache
+    depends_on:
+      - db
+    networks:
+      - laravel
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    command: /bin/sh -c "chown -R www-data:www-data /var/www/html && php-fpm"
+    restart: unless-stopped
+
+  web:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - app
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:80"
+    networks:
+      - laravel
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: db_api
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - laravel
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8084:80"
+    networks:
+      - laravel
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  composer_cache:
+
+networks:
+  laravel:
