@@ -34,7 +34,7 @@ COPY ./src /var/www/html
 USER www-data
 
 # Instalar o Laravel
-RUN composer create-project --prefer-dist laravel/laravel .
+#RUN composer create-project --prefer-dist laravel/laravel .
 
 # Voltar para o usuário root para futuras operações
 USER root
